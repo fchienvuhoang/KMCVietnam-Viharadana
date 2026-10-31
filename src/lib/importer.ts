@@ -3,7 +3,7 @@ import { PrismaClientKnownRequestError, type InputJsonObject } from "@prisma/cli
 import { classifyDescription, type KeywordRule } from "@/lib/classifier";
 import { toPrismaDecimal } from "@/lib/money";
 import { getPrisma } from "@/lib/prisma";
-import { parseTechcombankStatement } from "@/lib/techcombank";
+import { parseMbStatement } from "@/lib/mbbank";
 import { normalizeTransferText } from "@/lib/text";
 
 export type ImportResult = {
@@ -23,13 +23,13 @@ type TransactionClient = Omit<
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 
-export async function importTechcombankStatement(
+export async function importBankStatement(
   fileName: string,
   buffer: Buffer,
   uploadedAt = new Date(),
 ) {
   const prisma = getPrisma();
-  const parsed = parseTechcombankStatement(buffer);
+  const parsed = await parseMbStatement(buffer);
   const rules = await loadKeywordRules(prisma);
 
   const uniqueRows = new Map<string, (typeof parsed.rows)[number]>();
@@ -40,15 +40,17 @@ export async function importTechcombankStatement(
   }
 
   return prisma.$transaction(async (tx: TransactionClient) => {
-    const accountNumber = parsed.meta.accountNumber ?? "TECHCOMBANK_UNKNOWN";
+    const accountNumber = parsed.meta.accountNumber ?? `${parsed.meta.sourceBank}_UNKNOWN`;
     const account = await tx.bankAccount.upsert({
       where: { accountNumber },
       update: {
         bankName: parsed.meta.sourceBank,
         accountName: parsed.meta.accountName,
         currency: parsed.meta.currency,
-        currentBalance: toPrismaDecimal(parsed.meta.closingBalance ?? 0),
-        balanceAsOf: parsed.meta.toDate,
+        ...(parsed.meta.closingBalance == null ? {} : {
+          currentBalance: toPrismaDecimal(parsed.meta.closingBalance),
+          balanceAsOf: parsed.meta.toDate,
+        }),
       },
       create: {
         bankName: parsed.meta.sourceBank,
@@ -56,7 +58,7 @@ export async function importTechcombankStatement(
         accountName: parsed.meta.accountName,
         currency: parsed.meta.currency,
         currentBalance: toPrismaDecimal(parsed.meta.closingBalance ?? 0),
-        balanceAsOf: parsed.meta.toDate,
+        balanceAsOf: parsed.meta.closingBalance == null ? null : parsed.meta.toDate,
       },
     });
 

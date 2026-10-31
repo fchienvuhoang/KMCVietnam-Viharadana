@@ -67,7 +67,7 @@ export default async function ReadonlyReportPage() {
         <section className="space-y-3">
           <PrimaryBalanceStat
             label="Tổng tiền trong tài khoản"
-            value={money(data.bankAccount?.currentBalance ?? 0)}
+            value={data.bankAccount?.balanceAsOf ? money(data.bankAccount.currentBalance) : "Chưa có số dư"}
             detail={data.bankAccount ? balanceDetail(data.bankAccount) : "Chưa có dữ liệu tài khoản"}
           />
           <div className="grid gap-3 sm:grid-cols-4">

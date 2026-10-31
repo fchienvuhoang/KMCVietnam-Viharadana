@@ -431,7 +431,7 @@ function Dashboard({ data }: { data: DashboardData }) {
               <HeaderStat label="Chưa phân loại" value={data.overview.unmatchedCount.toLocaleString("vi-VN")} />
               <HeaderStat
                 label="TK ngân hàng"
-                value={money(data.overview.bankBalance)}
+                value={data.bankAccount?.balanceAsOf ? money(data.overview.bankBalance) : "Chưa có số dư"}
                 tone="emerald"
               />
               <HeaderStat
@@ -458,12 +458,14 @@ function Dashboard({ data }: { data: DashboardData }) {
         <Panel>
           <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
             <div className="min-w-0 flex-1">
-              <PanelTitle icon={Upload} title="Import sao kê" />
+              <PanelTitle icon={Upload} title="Import sao kê MB" />
               <form className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]" onSubmit={handleImport}>
                 <input
                   name="file"
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".pdf,application/pdf"
+                  aria-label="Chọn file PDF sao kê MB"
+                  aria-describedby="mb-import-help"
                   required
                   className="block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
                 />
@@ -472,9 +474,12 @@ function Dashboard({ data }: { data: DashboardData }) {
                   className="inline-flex items-center justify-center gap-2 rounded-md bg-zinc-950 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isImporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
-                  Import Excel
+                  Import MB PDF
                 </button>
               </form>
+              <p id="mb-import-help" className="mt-2 text-xs leading-5 text-zinc-500">
+                Chọn PDF gốc từ MB, mẫu Sổ phụ chi tiết kiêm báo nợ/báo có. Tối đa 4 MB.
+              </p>
               {data.latestImport ? (
                 <p className="mt-3 text-xs leading-5 text-zinc-500">
                   Lần import gần nhất: {data.latestImport.fileName}, {dateTime(data.latestImport.importedAt)}
@@ -1373,7 +1378,7 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
   const totalCampaignRefunds = data.campaigns.reduce((sum, campaign) => sum + campaign.refunds, 0);
   const totalExpenses = data.overview.totalExpenses;
   const currentAmount = totalCampaignIncome + totalCampaignRefunds - totalExpenses;
-  const bankDifference = data.overview.bankBalance - currentAmount;
+  const bankDifference = data.bankAccount?.balanceAsOf ? data.overview.bankBalance - currentAmount : null;
 
   const rows = [
     {
@@ -1396,7 +1401,7 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
     },
     {
       label: "Số dư tài khoản ngân hàng",
-      value: data.overview.bankBalance,
+      value: data.bankAccount?.balanceAsOf ? data.overview.bankBalance : null,
       note: data.bankAccount
         ? `${data.bankAccount.bankName} ${data.bankAccount.accountNumber}`
         : "Chưa có thông tin tài khoản từ sao kê.",
@@ -1405,7 +1410,7 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
     {
       label: "Chênh lệch tài khoản và sổ theo dõi",
       value: bankDifference,
-      note: "Số dư ngân hàng trừ số tiền hiện tại theo thu chi.",
+      note: data.bankAccount?.balanceAsOf ? "Số dư ngân hàng trừ số tiền hiện tại theo thu chi." : "Sao kê chưa cung cấp số dư tài khoản để đối chiếu.",
       className: bankDifference === 0 ? "text-zinc-700" : "text-rose-700",
     },
     {
@@ -1438,7 +1443,7 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
               <td className="px-3 py-2 font-medium text-zinc-900">{row.label}</td>
               <td className="px-3 py-2 text-zinc-500">{row.note}</td>
               <td className={`whitespace-nowrap px-3 py-2 text-right font-semibold ${row.className}`}>
-                {money(row.value)}
+                {row.value == null ? "Chưa có số dư" : money(row.value)}
               </td>
             </tr>
           ))}

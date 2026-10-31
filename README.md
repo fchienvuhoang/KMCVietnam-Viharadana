@@ -2,38 +2,24 @@
 
 Bản độc lập dành cho nhóm thiện pháp KMCVietnam-Vihāradāna.
 
-Ứng dụng Next.js phân loại nội dung chuyển khoản từ file sao kê Techcombank theo danh sách thiện pháp và bộ từ khóa đã quản lý trước.
+Ứng dụng Next.js phân loại nội dung chuyển khoản từ file sao kê MB PDF theo danh sách thiện pháp và bộ từ khóa đã quản lý trước.
 
 ## Stack
 
 - Next.js App Router, TypeScript, Tailwind CSS
 - PostgreSQL qua Prisma ORM
-- Import Excel bằng `xlsx`
+- Import PDF MB bằng `pdfjs-dist`
 - Deploy phù hợp với Vercel
 
-## Cấu trúc sao kê Techcombank đã hỗ trợ
+## Cấu trúc sao kê MB đã hỗ trợ
 
-File mẫu `/Users/jigmewangchuk/Downloads/Account statement.xlsx` có sheet `Account statement`.
+Dùng PDF gốc có lớp văn bản do MB xuất, mẫu **Sổ phụ chi tiết kiêm báo nợ/báo có**.
 
-Metadata nằm ở các dòng đầu:
-
-- `Tu ngay`, `Toi ngay`
-- `So tai khoan`
-- `Ten tai khoan`
-- `Loai tien`
-- `So du dau ky`
-- `So du cuoi ky`
-
-Bảng giao dịch bắt đầu ở dòng header:
-
-- `NGAY`
-- `DIEN GIAI`
-- `CHI TIET`
-- `NO`
-- `CO`
-- `SO DU`
-
-Ứng dụng dùng `CHI TIET` làm khóa unique để chống import trùng.
+- Thông tin tài khoản: số tài khoản, tên tài khoản, loại tiền VND, kỳ sao kê.
+- Giao dịch: ngày giao dịch, số bút toán, phát sinh nợ, phát sinh có, nội dung.
+- Hỗ trợ nhiều trang và nội dung xuống dòng; đối chiếu tổng phát sinh trước khi nhập.
+- Chống trùng bằng số tài khoản MB và số bút toán.
+- Mẫu này không có số dư đầu/cuối kỳ; hiển thị **Chưa có số dư** nếu chưa có số dư đã biết.
 
 ## Database đề xuất trên Vercel
 
@@ -71,7 +57,7 @@ DATABASE_POOL_MAX="2"
 - `ImportBatch`: mỗi lần import file sao kê, lưu số dòng mới/trùng/chưa phân loại.
 - `Campaign`: thiện pháp, mã như `cntt10`, `kathina-pm`.
 - `CampaignKeyword`: danh sách từ khóa của từng thiện pháp, đã chuẩn hóa không dấu để match linh hoạt.
-- `BankTransaction`: giao dịch sao kê, unique theo `detail` tương ứng cột `CHI TIET`.
+- `BankTransaction`: giao dịch sao kê, unique theo `detail` gồm ngân hàng MB, số tài khoản và số bút toán.
 - Khoản chi được lấy trực tiếp từ cột `NO` trong `BankTransaction` và gắn vào thiện pháp tương ứng.
 
 ## Chạy local
@@ -142,8 +128,8 @@ ngoại tới thiện pháp. Không cần reset database.
 ## Luồng sử dụng
 
 1. Tạo thiện pháp và nhập từ khóa liên quan.
-2. Upload file sao kê Techcombank `.xlsx`.
-3. Hệ thống parse các dòng giao dịch, bỏ qua `CHI TIET` đã tồn tại.
+2. Upload file sao kê MB `.pdf`.
+3. Hệ thống parse các dòng giao dịch, bỏ qua mã bút toán MB của tài khoản đã tồn tại.
 4. Giao dịch được phân loại theo keyword đang active.
 5. Giao dịch chưa khớp có thể gán thủ công hoặc bổ sung keyword rồi bấm `Phân loại lại`.
 6. Gán các dòng cột `NO` vào thiện pháp tương ứng để theo dõi tổng chi và tồn quỹ.
@@ -157,3 +143,16 @@ ngoại tới thiện pháp. Không cần reset database.
 - `NEXT_PUBLIC_APP_URL` có thể để trống để link chia sẻ tự dùng domain hiện tại; nếu đặt thì dùng URL production của project mới.
 - Build command: `npm run vercel-build`. Migration chạy trước build.
 - Bản này không kèm sao kê tĩnh và các thiện pháp seed của nhóm cũ. Logo chữ KMC là dấu hiệu tạm, có thể thay tại `public/assets/kmc-vietnam-mark.svg`.
+
+## Sao kê MB PDF
+
+Runtime yêu cầu Node.js 22.13 trở lên (cấu hình Node.js 22.x hoặc 24.x trên Vercel).
+
+Nhóm KMCVietnam-Vihāradāna dùng sao kê MB. Chọn **Import sao kê** và tải PDF gốc có lớp văn bản, mẫu **Sổ phụ chi tiết kiêm báo nợ/báo có** (tối đa 4 MB). Chỉ nhận mẫu MB PDF này.
+
+- Đọc số tài khoản, tên tài khoản, kỳ sao kê, mã bút toán, phát sinh nợ/có và nội dung nhiều dòng trên nhiều trang.
+- Chống trùng theo ngân hàng MB + số tài khoản + mã bút toán, kể cả khi nhập lại hoặc kỳ sao kê chồng nhau.
+- Đối chiếu tổng nợ/có với tổng phát sinh trong PDF trước khi ghi database; file không khớp sẽ bị từ chối.
+- Mẫu MB này không có số dư đầu/cuối kỳ. Không suy ra số dư từ chênh lệch thu chi; giữ số dư đã biết hoặc hiển thị **Chưa có số dư**.
+- Không hỗ trợ PDF scan hoặc mẫu bố cục khác; cần kiểm tra và bổ sung parser cho mẫu mới.
+- Kiểm tra parser: `node --experimental-strip-types --test tests/mbbank.test.mjs`.

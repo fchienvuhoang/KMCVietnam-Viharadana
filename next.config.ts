@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdfjs-dist"],
+  outputFileTracingIncludes: {
+    "/api/import": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"],
+  },
   async headers() {
     return [
       {
