@@ -1,9 +1,14 @@
 import type { NextConfig } from "next";
+import { realpathSync } from "node:fs";
+import { relative } from "node:path";
+
+// Trace the real file: pnpm package directories are symlinks.
+const pdfWorkerPath = relative(process.cwd(), realpathSync("node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"));
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pdfjs-dist"],
   outputFileTracingIncludes: {
-    "/api/import": ["./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"],
+    "/api/import": [pdfWorkerPath],
   },
   async headers() {
     return [
