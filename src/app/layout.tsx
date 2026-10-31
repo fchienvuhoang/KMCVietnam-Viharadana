@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quản lý thiện pháp",
-  description: "Phân loại sao kê Techcombank theo thiện pháp.",
+  title: { default: "KMCVietnam-Vihāradāna | Quản lý thiện pháp", template: "%s | KMCVietnam-Vihāradāna" },
+  description: "KMCVietnam-Vihāradāna — Quản lý thiện pháp, công khai thu chi và tịnh tài cúng dường.",
 };
 
 export default function RootLayout({

@@ -419,7 +419,7 @@ function Dashboard({ data }: { data: DashboardData }) {
         <div className="mx-auto flex max-w-[1600px] flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">
-              Techcombank statement classifier
+              KMCVietnam-Vihāradāna
             </p>
             <h1 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
               Quản lý thiện pháp và sao kê
@@ -984,8 +984,8 @@ function StatementReceiptModal({
           <div className="pr-10 text-center">
             <span className="mx-auto mb-3 block h-14 w-14 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_5px_16px_rgba(76,23,59,0.18)]">
               <Image
-                src="/assets/dhamma-group-logo.jpg"
-                alt="Logo Dhamma Group"
+                src="/assets/kmc-vietnam-mark.svg"
+                alt="Logo KMCVietnam-Vihāradāna"
                 width={56}
                 height={56}
                 className="h-full w-full scale-[1.12] object-cover"
@@ -1028,7 +1028,7 @@ function StatementReceiptModal({
           </dl>
 
           <div className="mt-5 border-t border-dashed border-zinc-300 pt-4 text-center text-[11px] leading-5 text-zinc-500">
-            Dhamma Group · Thông tin trích từ sao kê
+            KMCVietnam-Vihāradāna · Thông tin trích từ sao kê
           </div>
 
           <button
@@ -1861,12 +1861,15 @@ function campaignOptionLabel(campaign: CampaignSummary) {
   return `${marker} ${campaign.code} — ${selectionStatusLabels[campaign.status]}`;
 }
 
-const PUBLIC_CAMPAIGN_ORIGIN = "https://dhamma-eight.vercel.app";
+function publicCampaignOrigin() {
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  return (configured || (typeof window !== "undefined" ? window.location.origin : "")).replace(/\/+$/, "");
+}
 
 const statementIntroductions = [
-  "Dhamma Group xin kính gửi đến quý vị bản cập nhật sao kê của thiện pháp",
+  "KMCVietnam-Vihāradāna xin kính gửi đến quý vị bản cập nhật sao kê của thiện pháp",
   "Chúng con xin phép cập nhật thông tin tịnh tài của thiện pháp",
-  "Dhamma Group trân trọng gửi quý vị phần tổng hợp minh bạch của thiện pháp",
+  "KMCVietnam-Vihāradāna trân trọng gửi quý vị phần tổng hợp minh bạch của thiện pháp",
   "Kính mời quý vị cùng theo dõi thông tin thu chi mới nhất của thiện pháp",
   "Chúng con xin được chia sẻ bản cập nhật tịnh tài dành cho thiện pháp",
 ];
@@ -1904,7 +1907,7 @@ function buildCampaignStatement(campaign: CampaignSummary, expenses: StatementEx
   const date = vietnamDate(new Date());
   const code = campaign.code.toLocaleUpperCase("vi-VN");
   const name = campaign.name.trim().replace(/[.。]+$/, "").toLocaleUpperCase("vi-VN");
-  const publicUrl = `${PUBLIC_CAMPAIGN_ORIGIN}${publicCampaignPath(campaign.code)}`;
+  const publicUrl = `${publicCampaignOrigin()}${publicCampaignPath(campaign.code)}`;
 
   if (campaign.code.toLocaleLowerCase("vi-VN") === "tp04") {
     return [

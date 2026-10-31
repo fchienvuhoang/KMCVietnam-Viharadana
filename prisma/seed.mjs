@@ -20,26 +20,8 @@ function normalizeTransferText(value) {
     .replace(/\s+/g, " ");
 }
 
-const campaigns = [
-  {
-    code: "cntt10",
-    name: "Cúng dường y áo chư Tăng chùa Tam Tạng 10",
-    description: "Nhóm thiện pháp CNTT10.",
-    keywords: ["cntt10", "chua tam tang 10", "tam tang 10"],
-  },
-  {
-    code: "kathina-pm",
-    name: "Dâng y Kathina PM",
-    description: "Thiện pháp dâng y Kathina với nội dung thường gặp Kathina PM.",
-    keywords: ["kathina pm", "kathina"],
-  },
-  {
-    code: "vi-dieu-phap",
-    name: "Xây dựng giảng đường Vi Diệu Pháp",
-    description: "Các khoản cúng dường cho giảng đường Vi Diệu Pháp.",
-    keywords: ["vi dieu phap", "giang duong vi dieu phap"],
-  },
-];
+// Team mới khởi tạo trống; tạo thiện pháp và từ khóa trong trang quản trị.
+const campaigns = [];
 
 for (const campaign of campaigns) {
   const saved = await prisma.campaign.upsert({

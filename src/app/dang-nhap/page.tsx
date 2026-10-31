@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: Props) {
           <div>
             <h1 className="text-xl font-semibold">Đăng nhập quản trị</h1>
             <p className="mt-1 text-sm leading-6 text-zinc-600">
-              Nhập mật khẩu để vào trang import sao kê và quản lý thiện pháp.
+              KMCVietnam-Vihāradāna · Nhập mật khẩu để quản lý thiện pháp và sao kê.
             </p>
           </div>
         </div>

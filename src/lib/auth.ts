@@ -1,8 +1,8 @@
-export const ADMIN_SESSION_COOKIE = "dhamma_admin_session";
-export const READONLY_SESSION_COOKIE = "dhamma_readonly_session";
+export const ADMIN_SESSION_COOKIE = "kmcvietnam_viharadana_admin_session";
+export const READONLY_SESSION_COOKIE = "kmcvietnam_viharadana_readonly_session";
 
-const SESSION_MESSAGE = "dhamma-admin-session-v1";
-const READONLY_SESSION_MESSAGE = "dhamma-readonly-session-v1";
+const SESSION_MESSAGE = "kmcvietnam-viharadana-admin-session-v1";
+const READONLY_SESSION_MESSAGE = "kmcvietnam-viharadana-readonly-session-v1";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 const READONLY_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24;
 

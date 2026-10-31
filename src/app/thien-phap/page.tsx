@@ -17,7 +17,7 @@ export default async function ActiveCampaignsPage() {
         <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase text-emerald-700">
             <HeartHandshake className="h-4 w-4" />
-            Thiện pháp của nhóm
+            KMCVietnam-Vihāradāna
           </div>
           <h1 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
             Các thiện pháp đang thực hiện

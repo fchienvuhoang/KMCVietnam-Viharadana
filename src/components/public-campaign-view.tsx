@@ -65,8 +65,8 @@ export function PublicCampaignView({ data }: { data: PublicCampaignData }) {
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_5px_16px_rgba(76,23,59,0.2)] sm:h-16 sm:w-16">
                   <Image
-                    src="/assets/dhamma-group-logo.jpg"
-                    alt="Logo Dhamma Group"
+                    src="/assets/kmc-vietnam-mark.svg"
+                    alt="Logo KMCVietnam-Vihāradāna"
                     fill
                     sizes="64px"
                     className="scale-[1.16] object-cover"
@@ -483,8 +483,8 @@ function TransactionReceiptModal({
           <div className="pr-9 text-center">
             <span className="mx-auto mb-2 block h-12 w-12 overflow-hidden rounded-full border-2 border-white bg-white shadow-[0_5px_16px_rgba(76,23,59,0.18)]">
               <Image
-                src="/assets/dhamma-group-logo.jpg"
-                alt="Logo Dhamma Group"
+                src="/assets/kmc-vietnam-mark.svg"
+                alt="Logo KMCVietnam-Vihāradāna"
                 width={48}
                 height={48}
                 className="h-full w-full scale-[1.12] object-cover"

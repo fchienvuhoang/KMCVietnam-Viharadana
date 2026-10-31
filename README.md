@@ -1,4 +1,6 @@
-# Quản lý thiện pháp và sao kê Techcombank
+# KMCVietnam-Vihāradāna
+
+Bản độc lập dành cho nhóm thiện pháp KMCVietnam-Vihāradāna.
 
 Ứng dụng Next.js phân loại nội dung chuyển khoản từ file sao kê Techcombank theo danh sách thiện pháp và bộ từ khóa đã quản lý trước.
 
@@ -82,8 +84,7 @@ Cập nhật `DATABASE_URL` trong `.env`, sau đó:
 
 ```bash
 pnpm db:generate
-pnpm db:push
-pnpm db:seed
+pnpm db:deploy
 pnpm dev
 ```
 
@@ -126,11 +127,7 @@ Link gửi cho người xem là `/bao-cao`. Trang được đặt `noindex`, `no
 5. Vercel chạy `npm run vercel-build` theo `vercel.json`: áp dụng migration bằng
    `prisma migrate deploy` trước khi build ứng dụng. Nếu migration thất bại, build sẽ dừng.
    `DATABASE_URL` phải trỏ tới cùng database mà URL pool của ứng dụng sử dụng.
-6. Chạy seed khi khởi tạo database lần đầu:
-
-```bash
-pnpm db:seed
-```
+6. Mở trang quản trị để tạo thiện pháp của nhóm. Database mới khởi tạo trống; không cần seed.
 
 Nếu bản đang chạy báo `The table public.CampaignBill does not exist`, chạy migration
 với `DATABASE_URL` của đúng môi trường bị lỗi rồi redeploy:
@@ -151,3 +148,12 @@ ngoại tới thiện pháp. Không cần reset database.
 5. Giao dịch chưa khớp có thể gán thủ công hoặc bổ sung keyword rồi bấm `Phân loại lại`.
 6. Gán các dòng cột `NO` vào thiện pháp tương ứng để theo dõi tổng chi và tồn quỹ.
 7. Gửi link public `/thien-phap/[ma-thien-phap]` cho thí chủ xem thu chi theo từng thiện pháp.
+
+## Cấu hình bản riêng KMCVietnam-Vihāradāna
+
+- Tạo project Vercel mới từ repo `fchienvuhoang/KMCVietnam-Viharadana`.
+- Tạo database PostgreSQL riêng; không dùng URL database của nhóm cũ. Nếu dùng pool, cả URL pool và direct phải trỏ cùng database mới.
+- Đặt `ADMIN_PASSWORD` và `READONLY_VIEW_PASSWORD` mới, độc lập với nhóm cũ.
+- `NEXT_PUBLIC_APP_URL` có thể để trống để link chia sẻ tự dùng domain hiện tại; nếu đặt thì dùng URL production của project mới.
+- Build command: `npm run vercel-build`. Migration chạy trước build.
+- Bản này không kèm sao kê tĩnh và các thiện pháp seed của nhóm cũ. Logo chữ KMC là dấu hiệu tạm, có thể thay tại `public/assets/kmc-vietnam-mark.svg`.
