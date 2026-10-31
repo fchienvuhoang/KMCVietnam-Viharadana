@@ -14,7 +14,6 @@ import {
   Loader2,
   Link2,
   Plus,
-  RefreshCw,
   Search,
   Settings,
   Tags,
@@ -144,7 +143,6 @@ function Dashboard({ data }: { data: DashboardData }) {
   const [importResult, setImportResult] = useState<ImportResponse | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isSavingCampaign, setIsSavingCampaign] = useState(false);
-  const [isReclassifying, setIsReclassifying] = useState(false);
   const [isBulkAssigning, setIsBulkAssigning] = useState(false);
   const [deletingCampaignId, setDeletingCampaignId] = useState<string | null>(null);
   const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
@@ -284,26 +282,6 @@ function Dashboard({ data }: { data: DashboardData }) {
       setError(getErrorMessage(caught));
     } finally {
       setDeletingCampaignId(null);
-    }
-  }
-
-  async function handleReclassify() {
-    setError(null);
-    setMessage(null);
-    setIsReclassifying(true);
-
-    try {
-      const result = await readJson<{ totalRows: number; matchedRows: number; unmatchedRows: number }>(
-        await fetch("/api/reclassify", { method: "POST" }),
-      );
-      setMessage(
-        `Đã phân loại lại ${result.totalRows} giao dịch: ${result.matchedRows} khớp, ${result.unmatchedRows} chưa khớp.`,
-      );
-      router.refresh();
-    } catch (caught) {
-      setError(getErrorMessage(caught));
-    } finally {
-      setIsReclassifying(false);
     }
   }
 
@@ -537,14 +515,6 @@ function Dashboard({ data }: { data: DashboardData }) {
               <Panel>
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <PanelTitle icon={Settings} title="Danh sách thiện pháp" />
-                  <button
-                    onClick={handleReclassify}
-                    disabled={isReclassifying}
-                    className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isReclassifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                    Phân loại lại
-                  </button>
                 </div>
                 <CampaignTable
                   campaigns={data.campaigns}

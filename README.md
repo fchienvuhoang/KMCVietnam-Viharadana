@@ -131,7 +131,7 @@ ngoại tới thiện pháp. Không cần reset database.
 2. Upload file sao kê MB `.pdf`.
 3. Hệ thống parse các dòng giao dịch, bỏ qua mã bút toán MB của tài khoản đã tồn tại.
 4. Giao dịch được phân loại theo keyword đang active.
-5. Giao dịch chưa khớp có thể gán thủ công hoặc bổ sung keyword rồi bấm `Phân loại lại`.
+5. Giao dịch chưa khớp có thể gán thủ công. Bổ sung keyword để tự động phân loại các giao dịch import mới.
 6. Gán các dòng cột `NO` vào thiện pháp tương ứng để theo dõi tổng chi và tồn quỹ.
 7. Gửi link public `/thien-phap/[ma-thien-phap]` cho thí chủ xem thu chi theo từng thiện pháp.
 
