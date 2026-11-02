@@ -1,3 +1,4 @@
+import { calculateCampaignFunds } from "@/lib/campaign-funds";
 import { decimalToNumber } from "@/lib/money";
 import { getPrisma } from "@/lib/prisma";
 
@@ -26,13 +27,15 @@ export type ReadonlyDashboardData = {
     expenses: number;
     refunds: number;
     balance: number;
+    treasuryTransfers: number;
+    heldBalance: number;
     transactionCount: number;
   }[];
 };
 
 export async function getReadonlyDashboardData(): Promise<ReadonlyDashboardData> {
   const prisma = getPrisma();
-  const [campaigns, transactionSums, refundSums, allocationSums, bankAccount, latestImport] = await Promise.all([
+  const [campaigns, transactionSums, refundSums, transferSums, allocationSums, bankAccount, latestImport] = await Promise.all([
     prisma.campaign.findMany({
       select: {
         id: true,
@@ -52,6 +55,13 @@ export async function getReadonlyDashboardData(): Promise<ReadonlyDashboardData>
       by: ["campaignId"],
       where: { campaignId: { not: null }, outflowType: "REFUND" },
       _sum: { debitAmount: true },
+      _count: { _all: true },
+    }),
+    prisma.bankTransaction.groupBy({
+      by: ["campaignId"],
+      where: { campaignId: { not: null }, outflowType: "TREASURER_TRANSFER" },
+      _sum: { debitAmount: true },
+      _count: { _all: true },
     }),
     prisma.transactionAllocation.groupBy({
       by: ["campaignId"],
@@ -94,14 +104,11 @@ export async function getReadonlyDashboardData(): Promise<ReadonlyDashboardData>
     const allocatedIncome = decimalToNumber(allocation?._sum.amount);
     const refunds = decimalToNumber(refund?._sum.debitAmount);
     const allocationCount = allocation?._count._all ?? 0;
-    const income = (sums?.income ?? 0) + allocatedIncome - refunds;
+    const transfer = transferSums.find(item => item.campaignId === campaign.id);
     return {
       ...campaign,
-      income,
-      expenses: sums?.expenses ?? 0,
-      refunds,
-      balance: income - (sums?.expenses ?? 0),
-      transactionCount: (sums?.transactionCount ?? 0) + allocationCount,
+      ...calculateCampaignFunds((sums?.income ?? 0) + allocatedIncome, sums?.expenses ?? 0, refunds, decimalToNumber(transfer?._sum.debitAmount)),
+      transactionCount: (sums?.transactionCount ?? 0) + allocationCount + (transfer?._count._all ?? 0) + (refund?._count._all ?? 0),
     };
   });
 

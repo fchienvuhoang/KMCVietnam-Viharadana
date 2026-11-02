@@ -27,6 +27,7 @@ enum ClassificationStatus {
 enum CampaignOutflowType {
   DONATION
   REFUND
+  TREASURER_TRANSFER
 }
 
 model BankAccount {

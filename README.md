@@ -156,3 +156,14 @@ Nhóm KMCVietnam-Vihāradāna dùng sao kê MB. Chọn **Import sao kê** và t�
 - Mẫu MB này không có số dư đầu/cuối kỳ. Không suy ra số dư từ chênh lệch thu chi; giữ số dư đã biết hoặc hiển thị **Chưa có số dư**.
 - Không hỗ trợ PDF scan hoặc mẫu bố cục khác; cần kiểm tra và bổ sung parser cho mẫu mới.
 - Kiểm tra parser: `node --experimental-strip-types --test tests/mbbank.test.mjs`.
+
+## Chuyển tiền cho thủ quỹ hằng tuần
+
+Sau khi import MB, mở danh sách giao dịch chuyển ra, gán giao dịch vào thiện pháp và chọn **Chuyển thủ quỹ** trong **Loại chuyển ra**. Mỗi giao dịch giữ ngày, mã bút toán và nội dung sao kê để theo dõi các lần chuyển hằng tuần.
+
+- **Hùn phước sau hoàn lại**: tiền hùn phước trừ tiền hoàn thí chủ; chuyển thủ quỹ không làm giảm chỉ tiêu này.
+- **Quỹ thiện pháp còn**: hùn phước sau hoàn lại trừ chi cúng dường.
+- **Đã chuyển thủ quỹ**: tổng các giao dịch được đánh dấu chuyển thủ quỹ của thiện pháp.
+- **Còn trong tài khoản**: quỹ thiện pháp còn trừ tiền đã chuyển thủ quỹ. Số liệu dựa trên giao dịch đã nhập, không thay thế số dư ngân hàng khi thiếu lịch sử/số dư đầu kỳ.
+
+Ví dụ hùn phước 100 triệu, chi cúng dường từ tài khoản người giữ 10 triệu, chuyển thủ quỹ hai lần 30 và 40 triệu: tổng hùn phước vẫn 100 triệu, quỹ còn 90 triệu, đã chuyển 70 triệu, còn trong tài khoản người giữ 20 triệu. Chức năng này chưa ghi nhận khoản thủ quỹ chi sau khi nhận tiền. Các giao dịch cũ giữ nguyên loại; người quản trị chọn lại loại cho các khoản chuyển thủ quỹ đã nhập trước đây.

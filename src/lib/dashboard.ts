@@ -1,3 +1,4 @@
+import { calculateCampaignFunds } from "@/lib/campaign-funds";
 import { decimalToNumber } from "@/lib/money";
 import { DatabaseNotConfiguredError, getPrisma, isTransientDatabaseError } from "@/lib/prisma";
 
@@ -17,6 +18,7 @@ export type DashboardData = {
     totalIncome: number;
     totalDebit: number;
     totalExpenses: number;
+    treasuryTransfers: number;
     trackedFundBalance: number;
     bankBalance: number;
     transactionCount: number;
@@ -56,6 +58,8 @@ export type CampaignSummary = {
   expenses: number;
   refunds: number;
   balance: number;
+  treasuryTransfers: number;
+  heldBalance: number;
   transactionCount: number;
   keywords: {
     id: string;
@@ -75,7 +79,7 @@ export type TransactionSummary = {
   detail: string;
   debitAmount: number;
   creditAmount: number;
-  outflowType: "DONATION" | "REFUND";
+  outflowType: "DONATION" | "REFUND" | "TREASURER_TRANSFER";
   balanceAfter: number | null;
   matchedKeyword: string | null;
   classificationStatus: "MATCHED" | "UNMATCHED" | "MANUAL";
@@ -117,6 +121,7 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
       campaigns,
       transactionSums,
       refundSums,
+      transferSums,
       allocationSums,
       overallTransactionSums,
       unmatchedIncome,
@@ -154,6 +159,12 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
       prisma.bankTransaction.groupBy({
         by: ["campaignId"],
         where: { outflowType: "REFUND", campaignId: { not: null } },
+        _sum: { debitAmount: true },
+        _count: { _all: true },
+      }),
+      prisma.bankTransaction.groupBy({
+        by: ["campaignId"],
+        where: { outflowType: "TREASURER_TRANSFER" },
         _sum: { debitAmount: true },
         _count: { _all: true },
       }),
@@ -300,7 +311,8 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
       const debit = tx?.debit ?? 0;
       const expensesAmount = debit;
       const refunds = refund?.amount ?? 0;
-      const income = grossIncome - refunds;
+      const transfer = transferSums.find(item => item.campaignId === campaign.id);
+      const funds = calculateCampaignFunds(grossIncome, expensesAmount, refunds, decimalToNumber(transfer?._sum.debitAmount));
 
       return {
         id: campaign.id,
@@ -308,12 +320,9 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
         name: campaign.name,
         description: campaign.description,
         status: campaign.status,
-        income,
+        ...funds,
         debit,
-        expenses: expensesAmount,
-        refunds,
-        balance: income - expensesAmount,
-        transactionCount: (tx?.count ?? 0) + (refund?.count ?? 0) + (allocation?.count ?? 0),
+        transactionCount: (tx?.count ?? 0) + (refund?.count ?? 0) + (allocation?.count ?? 0) + (transfer?._count._all ?? 0),
         keywords: campaign.keywords.map((keyword) => ({
           id: keyword.id,
           keyword: keyword.keyword,
@@ -326,7 +335,7 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
 
     const totalIncome = decimalToNumber(overallTransactionSums._sum.creditAmount);
     const totalDebit = decimalToNumber(overallTransactionSums._sum.debitAmount);
-    const totalExpenses = totalDebit;
+    const totalExpenses = totalDebit - transferSums.reduce((sum, item) => sum + decimalToNumber(item._sum.debitAmount), 0);
 
     return {
       ok: true,
@@ -335,7 +344,8 @@ async function getDashboardStateAttempt(attempt: number): Promise<DashboardState
           totalIncome,
           totalDebit,
           totalExpenses,
-          trackedFundBalance: campaignSummaries.reduce((sum, campaign) => sum + campaign.balance, 0),
+          treasuryTransfers: transferSums.reduce((sum, item) => sum + decimalToNumber(item._sum.debitAmount), 0),
+          trackedFundBalance: campaignSummaries.reduce((sum, campaign) => sum + campaign.heldBalance, 0),
           bankBalance: decimalToNumber(bankAccount?.currentBalance),
           transactionCount: overallTransactionSums._count,
           unmatchedCount: unmatchedTransactionCount,

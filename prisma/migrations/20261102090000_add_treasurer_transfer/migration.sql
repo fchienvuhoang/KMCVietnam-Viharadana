@@ -1,0 +1,1 @@
+ALTER TYPE "CampaignOutflowType" ADD VALUE 'TREASURER_TRANSFER';

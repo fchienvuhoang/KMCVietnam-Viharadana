@@ -95,6 +95,7 @@ export default async function ReadonlyReportPage() {
               tone="zinc"
             />
           </div>
+          <p className="text-xs text-zinc-500">Đã chuyển thủ quỹ: {money(data.campaigns.reduce((sum, campaign) => sum + campaign.treasuryTransfers, 0))} · Còn trong tài khoản theo giao dịch đã nhập: {money(data.campaigns.reduce((sum, campaign) => sum + campaign.heldBalance, 0))}. Chuyển thủ quỹ không tính là chi cúng dường.</p>
         </section>
 
         <section className="flex flex-col gap-3 border-y border-zinc-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
@@ -163,6 +164,8 @@ export default async function ReadonlyReportPage() {
                       {money(campaign.refunds)}
                     </dd>
                   </div>
+                  <div><dt className="text-xs text-zinc-500">Đã chuyển thủ quỹ</dt><dd className="mt-1 text-sm font-semibold text-blue-700">{money(campaign.treasuryTransfers)}</dd></div>
+                  <div className="text-right"><dt className="text-xs text-zinc-500">Còn trong tài khoản</dt><dd className="mt-1 text-sm font-semibold">{money(campaign.heldBalance)}</dd></div>
                   <div className="col-span-2 border-t border-zinc-100 pt-3">
                     <div className="flex items-center justify-between gap-3">
                       <dt className="text-xs text-zinc-500">Còn thừa</dt>
@@ -199,6 +202,8 @@ export default async function ReadonlyReportPage() {
                   <th className="px-4 py-3 text-right">Hùn phước</th>
                   <th className="px-4 py-3 text-right">Tổng chi</th>
                   <th className="px-4 py-3 text-right">Hoàn lại</th>
+                  <th className="px-4 py-3 text-right">Đã chuyển thủ quỹ</th>
+                  <th className="px-4 py-3 text-right">Còn trong tài khoản</th>
                   <th className="px-4 py-3 text-right">Còn thừa</th>
                   <th className="px-4 py-3 text-right">Link công khai</th>
                 </tr>
@@ -225,6 +230,8 @@ export default async function ReadonlyReportPage() {
                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-rose-700">
                       {money(campaign.refunds)}
                     </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right text-blue-700">{money(campaign.treasuryTransfers)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-semibold">{money(campaign.heldBalance)}</td>
                     <td className="whitespace-nowrap px-4 py-3 text-right font-semibold text-zinc-950">
                       {money(campaign.balance)}
                     </td>
@@ -243,7 +250,7 @@ export default async function ReadonlyReportPage() {
                 ))}
                 {data.campaigns.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-zinc-500">
+                    <td colSpan={10} className="px-4 py-10 text-center text-zinc-500">
                       Chưa có thiện pháp nào.
                     </td>
                   </tr>

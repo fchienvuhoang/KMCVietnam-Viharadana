@@ -288,7 +288,7 @@ function Dashboard({ data }: { data: DashboardData }) {
   async function assignTransaction(
     transactionId: string,
     campaignId: string | null,
-    outflowType?: "DONATION" | "REFUND",
+    outflowType?: "DONATION" | "REFUND" | "TREASURER_TRANSFER",
   ) {
     setError(null);
     setMessage(null);
@@ -413,7 +413,7 @@ function Dashboard({ data }: { data: DashboardData }) {
                 tone="emerald"
               />
               <HeaderStat
-                label="Quỹ theo thiện pháp"
+                label="Còn ở tài khoản"
                 value={money(data.overview.trackedFundBalance)}
                 tone="amber"
               />
@@ -639,7 +639,7 @@ function TransactionTable({
   campaigns: CampaignSummary[];
   pendingTransactionId: string | null;
   isBulkAssigning: boolean;
-  onAssign: (transactionId: string, campaignId: string | null, outflowType?: "DONATION" | "REFUND") => void;
+  onAssign: (transactionId: string, campaignId: string | null, outflowType?: "DONATION" | "REFUND" | "TREASURER_TRANSFER") => void;
   onBulkAssign: (transactionIds: string[], campaignId: string) => Promise<boolean>;
   onSplit: (transaction: TransactionSummary) => void;
 }) {
@@ -899,6 +899,8 @@ function StatementReceiptModal({
   const amount = isCredit ? transaction.creditAmount : transaction.debitAmount;
   const transactionType = isCredit
     ? "Tiền vào"
+    : transaction.outflowType === "TREASURER_TRANSFER"
+      ? "Chuyển thủ quỹ"
     : transaction.outflowType === "REFUND"
       ? "Hoàn lại"
       : "Tiền ra";
@@ -1072,7 +1074,9 @@ function CampaignTable({
               <th className="px-3 py-2 text-right">Hùn phước</th>
               <th className="px-3 py-2 text-right">Tổng chi</th>
               <th className="px-3 py-2 text-right">Hoàn lại</th>
-              <th className="px-3 py-2 text-right">Còn lại</th>
+              <th className="px-3 py-2 text-right">Quỹ thiện pháp còn</th>
+              <th className="px-3 py-2 text-right">Đã chuyển thủ quỹ</th>
+              <th className="px-3 py-2 text-right">Còn trong tài khoản</th>
               <th className="px-3 py-2 text-right">GD</th>
               <th className="px-3 py-2 text-right">Link công khai</th>
               <th className="px-3 py-2 text-right">Sửa</th>
@@ -1155,6 +1159,8 @@ function CampaignTable({
                 <td className="whitespace-nowrap px-3 py-2 text-right font-semibold text-zinc-950">
                   {money(campaign.balance)}
                 </td>
+                <td className="whitespace-nowrap px-3 py-2 text-right text-blue-700">{money(campaign.treasuryTransfers)}</td>
+                <td className="whitespace-nowrap px-3 py-2 text-right font-semibold">{money(campaign.heldBalance)}</td>
                 <td className="whitespace-nowrap px-3 py-2 text-right text-zinc-600">
                   {campaign.transactionCount.toLocaleString("vi-VN")}
                 </td>
@@ -1177,7 +1183,7 @@ function CampaignTable({
             ))}
             {campaigns.length === 0 ? (
               <tr>
-                <td colSpan={11} className="px-3 py-8 text-center text-zinc-500">
+                <td colSpan={13} className="px-3 py-8 text-center text-zinc-500">
                   Chưa có thiện pháp nào.
                 </td>
               </tr>
@@ -1199,7 +1205,7 @@ function DebitTransactionTable({
   transactions: TransactionSummary[];
   campaigns: CampaignSummary[];
   pendingTransactionId: string | null;
-  onAssign: (transactionId: string, campaignId: string | null, outflowType?: "DONATION" | "REFUND") => void;
+  onAssign: (transactionId: string, campaignId: string | null, outflowType?: "DONATION" | "REFUND" | "TREASURER_TRANSFER") => void;
   onLinkRefund: (transaction: TransactionSummary) => void;
 }) {
   const sortedCampaigns = sortCampaignsForSelection(campaigns);
@@ -1267,13 +1273,14 @@ function DebitTransactionTable({
                       onAssign(
                         transaction.id,
                         transaction.campaign?.id ?? null,
-                        event.target.value as "DONATION" | "REFUND",
+                        event.target.value as "DONATION" | "REFUND" | "TREASURER_TRANSFER",
                       )
                     }
                     className="w-32 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                   >
                     <option value="DONATION">Cúng dường</option>
                     <option value="REFUND">Hoàn lại</option>
+                    <option value="TREASURER_TRANSFER">Chuyển thủ quỹ</option>
                   </select>
                 </td>
                 <td className="px-3 py-2 align-top">
@@ -1347,7 +1354,7 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
   const totalCampaignIncome = data.campaigns.reduce((sum, campaign) => sum + campaign.income, 0);
   const totalCampaignRefunds = data.campaigns.reduce((sum, campaign) => sum + campaign.refunds, 0);
   const totalExpenses = data.overview.totalExpenses;
-  const currentAmount = totalCampaignIncome + totalCampaignRefunds - totalExpenses;
+  const currentAmount = totalCampaignIncome + totalCampaignRefunds - totalExpenses - data.overview.treasuryTransfers;
   const bankDifference = data.bankAccount?.balanceAsOf ? data.overview.bankBalance - currentAmount : null;
 
   const rows = [
@@ -1360,13 +1367,19 @@ function FundSummaryTable({ data }: { data: DashboardData }) {
     {
       label: "Tổng chi đã ghi nhận",
       value: totalExpenses,
-      note: "Cộng cột NỢ trong sao kê.",
+      note: "Cột NỢ trong sao kê, không gồm chuyển thủ quỹ.",
       className: "text-amber-700",
     },
     {
-      label: "Số tiền hiện tại",
+      label: "Đã chuyển thủ quỹ",
+      value: data.overview.treasuryTransfers,
+      note: "Chuyển nơi giữ tiền; không tính là chi cúng dường.",
+      className: "text-blue-700",
+    },
+    {
+      label: "Còn trong tài khoản theo sao kê đã nhập",
       value: currentAmount,
-      note: "Hùn phước cộng hoàn lại rồi trừ toàn bộ cột NỢ, để không trừ hoàn hai lần.",
+      note: "Hùn phước cộng hoàn lại, trừ khoản chi, hoàn tiền và tiền đã chuyển thủ quỹ. Đây là số theo các giao dịch đã nhập.",
       className: "text-zinc-950",
     },
     {
@@ -1891,7 +1904,9 @@ function buildCampaignStatement(campaign: CampaignSummary, expenses: StatementEx
       "",
       `💰 Tổng hùn phước: ${money(campaign.income)}`,
       `💝 Tổng cúng dường: ${money(campaign.expenses)}`,
-      `🌿 Tịnh tài hiện tại: ${money(campaign.balance)}`,
+      `🌿 Quỹ thiện pháp còn: ${money(campaign.balance)}`,
+      `🏦 Đã chuyển thủ quỹ: ${money(campaign.treasuryTransfers)}`,
+      `💳 Còn trong tài khoản: ${money(campaign.heldBalance)}`,
       "",
       `CHI TIẾT ${String(expenses.length).padStart(2, "0")} KHOẢN CÚNG DƯỜNG`,
       ...expenses.map((expense, index) =>
@@ -1906,6 +1921,9 @@ function buildCampaignStatement(campaign: CampaignSummary, expenses: StatementEx
   return [
     `🏦 CẬP NHẬT SAO KÊ THIỆN PHÁP ${code}`,
     `NGÀY ${date}`,
+    "",
+    `🏦 Đã chuyển thủ quỹ: ${money(campaign.treasuryTransfers)}`,
+    `💳 Còn trong tài khoản: ${money(campaign.heldBalance)}`,
     "",
     statementGreeting,
     "",
@@ -2323,6 +2341,8 @@ function CampaignModal({
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
                   <MiniStat label="Hùn phước" value={money(campaign.income)} />
                   <MiniStat label="Chi" value={money(campaign.expenses)} />
+                  <MiniStat label="Đã chuyển thủ quỹ" value={money(campaign.treasuryTransfers)} />
+                  <MiniStat label="Còn trong tài khoản" value={money(campaign.heldBalance)} />
                   <MiniStat label="GD" value={campaign.transactionCount.toLocaleString("vi-VN")} />
                 </div>
                 <a

@@ -1,3 +1,4 @@
+import { calculateCampaignFunds } from "@/lib/campaign-funds";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { decimalToNumber } from "@/lib/money";
@@ -5,7 +6,7 @@ import { getPrisma, withDatabaseReadRetry } from "@/lib/prisma";
 import { redactPhoneNumbers } from "@/lib/privacy";
 import { makeCampaignCode } from "@/lib/text";
 
-const PUBLIC_CAMPAIGN_DATA_CACHE_VERSION = "campaign-bills-v7";
+const PUBLIC_CAMPAIGN_DATA_CACHE_VERSION = "treasurer-transfers-v8";
 const PUBLIC_CAMPAIGN_LIST_TAG = "public-campaign-list";
 
 export type ActivePublicCampaign = {
@@ -23,6 +24,8 @@ export type PublicCampaignData = {
   expenses: number;
   refunds: number;
   balance: number;
+  treasuryTransfers: number;
+  heldBalance: number;
   transactionCount: number;
   transactions: PublicCampaignTransaction[];
   bills: PublicCampaignBill[];
@@ -45,7 +48,7 @@ export type PublicCampaignTransaction = {
   description: string;
   debitAmount: number;
   creditAmount: number;
-  outflowType: "DONATION" | "REFUND";
+  outflowType: "DONATION" | "REFUND" | "TREASURER_TRANSFER";
   refundLinks: PublicRefundLink[];
 };
 
@@ -151,7 +154,7 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     return null;
   }
 
-  const [transactionSums, refundSums, allocationSums, transactions, allocations, bills, donations] = await Promise.all([
+  const [transactionSums, refundSums, transferSums, allocationSums, transactions, allocations, bills, donations] = await Promise.all([
     prisma.bankTransaction.aggregate({
       where: {
         campaignId: campaign.id,
@@ -165,6 +168,11 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     }),
     prisma.bankTransaction.aggregate({
       where: { campaignId: campaign.id, outflowType: "REFUND" },
+      _sum: { debitAmount: true },
+      _count: true,
+    }),
+    prisma.bankTransaction.aggregate({
+      where: { campaignId: campaign.id, outflowType: "TREASURER_TRANSFER" },
       _sum: { debitAmount: true },
       _count: true,
     }),
@@ -249,7 +257,6 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     decimalToNumber(allocationSums._sum.amount);
   const expenses = decimalToNumber(transactionSums._sum.debitAmount);
   const refunds = decimalToNumber(refundSums._sum.debitAmount);
-  const income = grossIncome - refunds;
   const publicTransactions: PublicCampaignTransaction[] = [
     ...transactions.map((transaction) => ({
       id: transaction.id,
@@ -304,11 +311,8 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     name: campaign.name,
     description: campaign.description,
     status: campaign.status,
-    income,
-    expenses,
-    refunds,
-    balance: income - expenses,
-    transactionCount: transactionSums._count + allocationSums._count,
+    ...calculateCampaignFunds(grossIncome, expenses, refunds, decimalToNumber(transferSums._sum.debitAmount)),
+    transactionCount: transactionSums._count + allocationSums._count + refundSums._count + transferSums._count,
     transactions: publicTransactions,
     donations: donations.map((transaction) => ({
       id: transaction.id,

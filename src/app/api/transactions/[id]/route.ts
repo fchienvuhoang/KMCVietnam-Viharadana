@@ -9,7 +9,7 @@ import {
 
 const updateTransactionSchema = z.object({
   campaignId: z.string().optional().nullable(),
-  outflowType: z.enum(["DONATION", "REFUND"]).optional(),
+  outflowType: z.enum(["DONATION", "REFUND", "TREASURER_TRANSFER"]).optional(),
 });
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -31,7 +31,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
     if (body.outflowType && Number(previousTransaction?.debitAmount ?? 0) <= 0) {
       return NextResponse.json(
-        { error: "Chỉ giao dịch chuyển ra mới có thể đặt là cúng dường hoặc hoàn lại." },
+        { error: "Chỉ giao dịch chuyển ra mới có thể đặt là cúng dường, hoàn lại hoặc chuyển thủ quỹ." },
         { status: 400 },
       );
     }

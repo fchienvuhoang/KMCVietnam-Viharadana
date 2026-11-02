@@ -190,7 +190,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
 function validateRefundTransaction(transaction: {
   campaignId: string | null;
   debitAmount: Prisma.Decimal;
-  outflowType: "DONATION" | "REFUND";
+  outflowType: "DONATION" | "REFUND" | "TREASURER_TRANSFER";
 } | null) {
   if (!transaction) {
     return NextResponse.json({ error: "Không tìm thấy giao dịch hoàn lại." }, { status: 404 });
