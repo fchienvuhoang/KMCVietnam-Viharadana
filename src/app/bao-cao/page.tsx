@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { APP_URL } from "@/lib/site";
 import {
   Clock3,
   ExternalLink,
@@ -177,7 +178,7 @@ export default async function ReadonlyReportPage() {
                 </dl>
 
                 <a
-                  href={`/thien-phap/${campaign.code}`}
+                  href={`${APP_URL}/thien-phap/${encodeURIComponent(campaign.code)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
@@ -237,7 +238,7 @@ export default async function ReadonlyReportPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <a
-                        href={`/thien-phap/${campaign.code}`}
+                        href={`${APP_URL}/thien-phap/${encodeURIComponent(campaign.code)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 font-medium text-zinc-700 hover:bg-zinc-50"

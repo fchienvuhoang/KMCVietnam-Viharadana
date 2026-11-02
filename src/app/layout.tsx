@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { APP_URL } from "@/lib/site";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: { default: "KMCVietnam-Vihāradāna | Quản lý thiện pháp", template: "%s | KMCVietnam-Vihāradāna" },
   description: "KMCVietnam-Vihāradāna — Quản lý thiện pháp, công khai thu chi và tịnh tài cúng dường.",
 };

@@ -32,6 +32,7 @@ import type {
   DashboardState,
   TransactionSummary,
 } from "@/lib/dashboard";
+import { APP_URL } from "@/lib/site";
 import { downloadElementAsPng } from "@/lib/download-element-image";
 import { normalizeTransferText, splitKeywords } from "@/lib/text";
 
@@ -1166,7 +1167,7 @@ function CampaignTable({
                 </td>
                 <td className="whitespace-nowrap px-3 py-2 text-right">
                   <a
-                    href={publicCampaignPath(campaign.code)}
+                    href={`${APP_URL}${publicCampaignPath(campaign.code)}`}
                     target="_blank"
                     rel="noreferrer"
                     onClick={(event) => event.stopPropagation()}
@@ -1850,8 +1851,7 @@ function campaignOptionLabel(campaign: CampaignSummary) {
 }
 
 function publicCampaignOrigin() {
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  return (configured || (typeof window !== "undefined" ? window.location.origin : "")).replace(/\/+$/, "");
+  return APP_URL;
 }
 
 const statementIntroductions = [
@@ -2341,7 +2341,7 @@ function CampaignModal({
                   <MiniStat label="GD" value={campaign.transactionCount.toLocaleString("vi-VN")} />
                 </div>
                 <a
-                  href={publicCampaignPath(campaign.code)}
+                  href={`${APP_URL}${publicCampaignPath(campaign.code)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-3 inline-flex items-center gap-2 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"

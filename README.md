@@ -140,7 +140,7 @@ ngoại tới thiện pháp. Không cần reset database.
 - Tạo project Vercel mới từ repo `fchienvuhoang/KMCVietnam-Viharadana`.
 - Tạo database PostgreSQL riêng; không dùng URL database của nhóm cũ. Nếu dùng pool, cả URL pool và direct phải trỏ cùng database mới.
 - Đặt `ADMIN_PASSWORD` và `READONLY_VIEW_PASSWORD` mới, độc lập với nhóm cũ.
-- `NEXT_PUBLIC_APP_URL` có thể để trống để link chia sẻ tự dùng domain hiện tại; nếu đặt thì dùng URL production của project mới.
+- `NEXT_PUBLIC_APP_URL="https://kcmvietnam-viharadana.danasangha.org"` là domain chính thức dùng cho link chia sẻ và metadata.
 - Build command: `npm run vercel-build`. Migration chạy trước build.
 - Bản này không kèm sao kê tĩnh và các thiện pháp seed của nhóm cũ. Logo chữ KMC là dấu hiệu tạm, có thể thay tại `public/assets/kmc-vietnam-mark.svg`.
 
