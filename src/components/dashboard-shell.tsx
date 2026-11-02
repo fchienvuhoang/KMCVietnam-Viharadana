@@ -1904,9 +1904,7 @@ function buildCampaignStatement(campaign: CampaignSummary, expenses: StatementEx
       "",
       `💰 Tổng hùn phước: ${money(campaign.income)}`,
       `💝 Tổng cúng dường: ${money(campaign.expenses)}`,
-      `🌿 Quỹ thiện pháp còn: ${money(campaign.balance)}`,
-      `🏦 Đã chuyển thủ quỹ: ${money(campaign.treasuryTransfers)}`,
-      `💳 Còn trong tài khoản: ${money(campaign.heldBalance)}`,
+      `🌿 Tịnh tài hiện tại: ${money(campaign.balance)}`,
       "",
       `CHI TIẾT ${String(expenses.length).padStart(2, "0")} KHOẢN CÚNG DƯỜNG`,
       ...expenses.map((expense, index) =>
@@ -1921,9 +1919,6 @@ function buildCampaignStatement(campaign: CampaignSummary, expenses: StatementEx
   return [
     `🏦 CẬP NHẬT SAO KÊ THIỆN PHÁP ${code}`,
     `NGÀY ${date}`,
-    "",
-    `🏦 Đã chuyển thủ quỹ: ${money(campaign.treasuryTransfers)}`,
-    `💳 Còn trong tài khoản: ${money(campaign.heldBalance)}`,
     "",
     statementGreeting,
     "",

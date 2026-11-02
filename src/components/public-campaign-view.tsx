@@ -101,10 +101,8 @@ export function PublicCampaignView({ data }: { data: PublicCampaignData }) {
               <div className="grid grid-cols-2 divide-x divide-y divide-[#efd3df]">
                 <SummaryStat label="Hùn phước sau hoàn lại" value={money(data.income)} tone="jade" />
                 <SummaryStat label="Đã cúng dường" value={money(data.expenses)} tone="gold" />
-                <SummaryStat label="Đã chuyển thủ quỹ" value={money(data.treasuryTransfers)} tone="dark" />
-                <SummaryStat label="Còn trong tài khoản" value={money(data.heldBalance)} tone="jade" />
                 <SummaryStat label="Đã hoàn lại" value={money(data.refunds)} tone="gold" />
-                <SummaryStat label="Giao dịch" value={data.transactionCount.toLocaleString("vi-VN")} tone="dark" />
+                <SummaryStat label="Lượt hùn phước" value={data.transactionCount.toLocaleString("vi-VN")} tone="dark" />
               </div>
             </section>
           </div>
@@ -112,7 +110,7 @@ export function PublicCampaignView({ data }: { data: PublicCampaignData }) {
           <div className="mt-5 flex max-w-3xl items-start gap-2 border-l-2 border-[#b94f79] pl-3 text-xs leading-5 text-[#624b59]">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#a43d6a]" />
             <p>
-              Chuyển thủ quỹ không làm giảm tổng hùn phước và không phải chi cúng dường. Số còn trong tài khoản tính theo các giao dịch đã nhập, chưa phải số dư ngân hàng được xác nhận. Hoàn lại là những khoản chuyển trả cho thí chủ để thí chủ tác ý lại,
+              Hoàn lại là những khoản chuyển trả cho thí chủ để thí chủ tác ý lại,
               hoặc do thí chủ chuyển nhầm thiện pháp nên được hoàn lại.
             </p>
           </div>
@@ -647,14 +645,6 @@ function transactionMeta(transaction: PublicCampaignTransaction) {
       className: "border-[#9fd9c0] bg-[#effbf5] text-[#247257]",
       amountClassName: "text-[#b33969]",
       cardHeaderClassName: "bg-[#fff5f9]",
-    };
-  }
-
-  if (transaction.outflowType === "TREASURER_TRANSFER") {
-    return {
-      label: "Chuyển thủ quỹ", amount: transaction.debitAmount,
-      className: "border-blue-200 bg-blue-50 text-blue-700",
-      amountClassName: "text-blue-700", cardHeaderClassName: "bg-blue-50",
     };
   }
 

@@ -3,8 +3,8 @@ import { getPrisma, withDatabaseReadRetry } from "@/lib/prisma";
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
   const prisma = getPrisma();
-  const bill = await withDatabaseReadRetry(() => prisma.campaignBill.findUnique({
-    where: { id },
+  const bill = await withDatabaseReadRetry(() => prisma.campaignBill.findFirst({
+    where: { id, OR: [{ transactionId: null }, { transaction: { outflowType: "DONATION" } }] },
     select: { imageData: true, mimeType: true, createdAt: true },
   }));
 

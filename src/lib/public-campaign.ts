@@ -1,4 +1,3 @@
-import { calculateCampaignFunds } from "@/lib/campaign-funds";
 import { revalidateTag, unstable_cache } from "next/cache";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import { decimalToNumber } from "@/lib/money";
@@ -6,7 +5,7 @@ import { getPrisma, withDatabaseReadRetry } from "@/lib/prisma";
 import { redactPhoneNumbers } from "@/lib/privacy";
 import { makeCampaignCode } from "@/lib/text";
 
-const PUBLIC_CAMPAIGN_DATA_CACHE_VERSION = "treasurer-transfers-v8";
+const PUBLIC_CAMPAIGN_DATA_CACHE_VERSION = "public-without-treasury-v9";
 const PUBLIC_CAMPAIGN_LIST_TAG = "public-campaign-list";
 
 export type ActivePublicCampaign = {
@@ -24,8 +23,6 @@ export type PublicCampaignData = {
   expenses: number;
   refunds: number;
   balance: number;
-  treasuryTransfers: number;
-  heldBalance: number;
   transactionCount: number;
   transactions: PublicCampaignTransaction[];
   bills: PublicCampaignBill[];
@@ -48,7 +45,7 @@ export type PublicCampaignTransaction = {
   description: string;
   debitAmount: number;
   creditAmount: number;
-  outflowType: "DONATION" | "REFUND" | "TREASURER_TRANSFER";
+  outflowType: "DONATION" | "REFUND";
   refundLinks: PublicRefundLink[];
 };
 
@@ -154,7 +151,7 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     return null;
   }
 
-  const [transactionSums, refundSums, transferSums, allocationSums, transactions, allocations, bills, donations] = await Promise.all([
+  const [transactionSums, refundSums, allocationSums, transactions, allocations, bills, donations] = await Promise.all([
     prisma.bankTransaction.aggregate({
       where: {
         campaignId: campaign.id,
@@ -171,11 +168,6 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
       _sum: { debitAmount: true },
       _count: true,
     }),
-    prisma.bankTransaction.aggregate({
-      where: { campaignId: campaign.id, outflowType: "TREASURER_TRANSFER" },
-      _sum: { debitAmount: true },
-      _count: true,
-    }),
     prisma.transactionAllocation.aggregate({
       where: { campaignId: campaign.id },
       _sum: { amount: true },
@@ -184,6 +176,7 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     prisma.bankTransaction.findMany({
       where: {
         campaignId: campaign.id,
+        outflowType: { in: ["DONATION", "REFUND"] },
       },
       select: {
         id: true,
@@ -266,7 +259,7 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
       description: redactPhoneNumbers(transaction.description),
       debitAmount: decimalToNumber(transaction.debitAmount),
       creditAmount: decimalToNumber(transaction.creditAmount),
-      outflowType: transaction.outflowType,
+      outflowType: transaction.outflowType as "DONATION" | "REFUND",
       refundLinks: transaction.creditAmount.greaterThan(0)
         ? transaction.receivedRefundLinks.map((link) => ({
             amount: decimalToNumber(link.amount),
@@ -311,8 +304,11 @@ async function loadPublicCampaignData(code: string): Promise<PublicCampaignData 
     name: campaign.name,
     description: campaign.description,
     status: campaign.status,
-    ...calculateCampaignFunds(grossIncome, expenses, refunds, decimalToNumber(transferSums._sum.debitAmount)),
-    transactionCount: transactionSums._count + allocationSums._count + refundSums._count + transferSums._count,
+    income: grossIncome - refunds,
+    expenses,
+    refunds,
+    balance: grossIncome - refunds - expenses,
+    transactionCount: transactionSums._count + allocationSums._count,
     transactions: publicTransactions,
     donations: donations.map((transaction) => ({
       id: transaction.id,

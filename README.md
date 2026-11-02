@@ -167,3 +167,5 @@ Sau khi import MB, mở danh sách giao dịch chuyển ra, gán giao dịch và
 - **Còn trong tài khoản**: quỹ thiện pháp còn trừ tiền đã chuyển thủ quỹ. Số liệu dựa trên giao dịch đã nhập, không thay thế số dư ngân hàng khi thiếu lịch sử/số dư đầu kỳ.
 
 Ví dụ hùn phước 100 triệu, chi cúng dường từ tài khoản người giữ 10 triệu, chuyển thủ quỹ hai lần 30 và 40 triệu: tổng hùn phước vẫn 100 triệu, quỹ còn 90 triệu, đã chuyển 70 triệu, còn trong tài khoản người giữ 20 triệu. Chức năng này chưa ghi nhận khoản thủ quỹ chi sau khi nhận tiền. Các giao dịch cũ giữ nguyên loại; người quản trị chọn lại loại cho các khoản chuyển thủ quỹ đã nhập trước đây.
+
+Thông tin chuyển thủ quỹ và số còn trong tài khoản chỉ hiển thị ở quản trị/báo cáo có mật khẩu. Trang công khai và nội dung chia sẻ không chứa số tiền hoặc giao dịch chuyển thủ quỹ; tổng hùn phước, cúng dường và tịnh tài còn giữ cách tính trước đây.
