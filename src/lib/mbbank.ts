@@ -65,12 +65,14 @@ export function parseMbPages(pages: MbPdfPage[]): ParsedStatement {
       const debitAmount = mbAmount(column(0.27, 0.34));
       const creditAmount = mbAmount(column(0.34, 0.415));
       const description = column(0.415, 0.672);
-      if (!/^[A-Z]{2}\d+$/.test(reference) || !description || (debitAmount > 0) === (creditAmount > 0)) {
+      if (!/^(?:[A-Z]{2}\d+|CHG[A-Z0-9]+)$/.test(reference) || !description || (debitAmount > 0) === (creditAmount > 0)) {
         throw new Error(`Không đọc chính xác giao dịch MB dòng ${rows.length + 1}; chưa nhập dữ liệu.`);
       }
       rows.push({
         transactionDate: mbDate(anchor.text), statementRow: rows.length + 1,
-        description, detail: `MB:${accountNumber}:${reference}`,
+        description, detail: reference.startsWith("CHG")
+          ? `MB:${accountNumber}:${reference}:${debitAmount > 0 ? "debit" : "credit"}:${debitAmount || creditAmount}`
+          : `MB:${accountNumber}:${reference}`,
         debitAmount, creditAmount, balanceAfter: null,
         raw: { transactionNumber: reference, transactionDate: anchor.text, beneficiary: column(0.672, 0.835), counterpartyAccount: column(0.835, 0.92), bank: column(0.92, 1) },
       });

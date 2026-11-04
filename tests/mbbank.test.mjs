@@ -61,3 +61,23 @@ test('MB: rejects duplicate reference numbers', () => {
 test('MB: rejects Excel or renamed non-PDF files before parsing', async () => {
   await assert.rejects(() => parseMbStatement(Buffer.from('not a PDF')), /PDF sao kê MB gốc/);
 });
+
+
+test('MB: preserves separate fees sharing an alphanumeric CHG reference', () => {
+  const pages = sample();
+  for (const c of pages[0].cells) {
+    if (['FT26227946123407', 'TT26227474002303'].includes(c.text)) c.text = 'CHG263073TQ0Q';
+    if (c.text === '5,000,000.00' || c.text === '5,000,000') c.text = c.y === 285 ? '25,000' : '25,000.00';
+    if (c.text === '7,000,000.00') c.text = c.y === 290 ? '0.00' : '2,500.00';
+    if (c.y === 245 && c.x === 242) c.text = '2,500.00';
+    if (c.y === 245 && c.x === 310) c.text = '0.00';
+    if (c.y === 285 && c.x === 242) c.text = '27,500';
+  }
+  const parsed = parseMbPages(pages);
+  assert.deepEqual(parsed.rows.map(row => row.debitAmount), [25000, 2500]);
+  assert.equal(new Set(parsed.rows.map(row => row.detail)).size, 2);
+  assert.deepEqual(parseMbPages(pages).rows, parsed.rows);
+  pages[0].cells.find(c => c.y === 245 && c.x === 242).text = '25,000.00';
+  pages[0].cells.find(c => c.y === 285 && c.x === 242).text = '50,000';
+  assert.throws(() => parseMbPages(pages), /trùng/);
+});
